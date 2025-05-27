@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Bias Trading Strategy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 18px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: #4a5568;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: #fff;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px 12px 0 0;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.10);
+            z-index: 2;
+        }
+
+        .tab-btn:hover {
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            font-size: 1.01rem;
+            font-weight: 600;
+            color: #4f4f6e;
+            margin-bottom: 7px;
+            letter-spacing: 0.01em;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1.5px solid #e0e6ed;
+            border-radius: 12px;
+            font-size: 1.08rem;
+            background: linear-gradient(135deg, #f8fafc 80%, #eef2fb 100%);
+            color: #232946;
+            transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+            box-shadow: 0 2px 12px rgba(102, 126, 234, 0.06);
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            font-weight: 500;
+            margin-bottom: 2px;
+            letter-spacing: 0.01em;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.13), 0 2px 12px rgba(102, 126, 234, 0.10);
+            background: #f3e8ff;
+        }
+
+        .input-group select {
+            width: 16.666%;
+            /* 1/6 de la largeur du parent */
+            min-width: 120px;
+            max-width: 260px;
+            padding: 14px 18px;
+            border: 1.5px solid #e0e6ed;
+            border-radius: 12px;
+            font-size: 1.08rem;
+            background: linear-gradient(135deg, #f8fafc 80%, #eef2fb 100%);
+            color: #232946;
+            transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+            box-shadow: 0 2px 12px rgba(102, 126, 234, 0.06);
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            font-weight: 500;
+            margin-bottom: 2px;
+            letter-spacing: 0.01em;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23764ba2" height="22" viewBox="0 0 20 20" width="22" xmlns="http://www.w3.org/2000/svg"><path d="M7.293 7.293a1 1 0 011.414 0L10 8.586l1.293-1.293a1 1 0 111.414 1.414l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 010-1.414z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 22px 22px;
+            padding-right: 44px;
+            cursor: pointer;
+            min-height: 48px;
+        }
+
+        .input-group input::-webkit-input-placeholder {
+            color: #b0b8c9;
+            opacity: 1;
+            font-weight: 400;
+        }
+
+        .input-group input:-ms-input-placeholder {
+            color: #b0b8c9;
+            opacity: 1;
+            font-weight: 400;
+        }
+
+        .input-group input::placeholder {
+            color: #b0b8c9;
+            opacity: 1;
+            font-weight: 400;
+        }
+
+        .input-group input[type="number"]::-webkit-inner-spin-button,
+        .input-group input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .input-group input[type="number"] {
+            appearance: textfield;
+            -moz-appearance: textfield;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 20%;
+            min-width: 120px;
+            max-width: 260px;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .bias-result {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .bias-reversal {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .bias-continuation {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .bias-consolidation {
+            background: linear-gradient(135deg, #feca57, #ff9ff3);
+            color: white;
+        }
+
+        .trading-plan {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 20px;
+        }
+
+        .trading-plan h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .plan-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .plan-section {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .plan-section h4 {
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        .plan-section ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .plan-section li {
+            padding: 5px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-active {
+            background-color: #48bb78;
+        }
+
+        .status-warning {
+            background-color: #ed8936;
+        }
+
+        .status-inactive {
+            background-color: #a0aec0;
+        }
+
+        .chart-placeholder {
+            background: #f7fafc;
+            border: 2px dashed #cbd5e0;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            color: #718096;
+            margin: 20px 0;
+        }
+
+        .chart-placeholder .charts-gallery {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 48px;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 18px;
+        }
+
+        .chart-placeholder .chart-block {
+            width: 220px;
+            min-width: 220px;
+            max-width: 220px;
+        }
+
+        @media (max-width: 1100px) {
+            .chart-placeholder .charts-gallery {
+                flex-wrap: wrap;
+                gap: 32px 24px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .chart-placeholder .charts-gallery {
+                flex-direction: column;
+                align-items: center;
+                gap: 24px;
+            }
+        }
+
+        .risk-calculator {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .risk-result {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 10px;
+            font-weight: normal;
+            color: #222;
+            font-size: 0.98rem;
+        }
+
+        .risk-result .risk-amount {
+            color: #4a90e2;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .risk-result .stop-loss {
+            color: #e67e22;
+            font-size: 0.93rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .risk-result .position-size {
+            color: #27ae60;
+            font-size: 0.93rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .levels-display {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .levels-display div {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .chart-url-input.invisible-input {
+            opacity: 0;
+            pointer-events: none;
+            height: 0;
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .chart-url-input {
+            transition: opacity 0.25s;
+        }
+
+        .pl-day-box {
+            flex: 1 1 0;
+            background: #e0e6ed;
+            border-radius: 12px;
+            padding: 96px 0 56px 0;
+            margin: 0 2px;
+            text-align: center;
+            font-size: 1.12rem;
+            font-weight: 600;
+            color: #4a5568;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.07);
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .pl-day-box.current {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            font-weight: 700;
+            border: 2px solid #764ba2;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.13);
+            z-index: 1;
+        }
+
+        .pl-day-modern {
+            flex: 1 1 0;
+            background: linear-gradient(135deg, #f8fafc 70%, #e0e6ed 100%);
+            border-radius: 18px;
+            padding: 38px 0 24px 0;
+            margin: 0 4px;
+            text-align: center;
+            font-size: 1.13rem;
+            font-weight: 600;
+            color: #4a5568;
+            box-shadow: 0 4px 18px rgba(102, 126, 234, 0.10);
+            border: 2.5px solid transparent;
+            position: relative;
+            min-width: 110px;
+            max-width: 140px;
+            transition: box-shadow 0.22s, border 0.22s, transform 0.18s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .pl-day-modern.current {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            font-weight: 700;
+            border: 2.5px solid #764ba2;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.18);
+            z-index: 1;
+            transform: scale(1.04);
+        }
+
+        .pl-day-modern:hover {
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.18);
+            border: 2.5px solid #667eea;
+            transform: translateY(-2px) scale(1.03);
+        }
+
+        .pl-day-title {
+            font-size: 1.08em;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: 0.01em;
+        }
+
+        .pl-day-badge {
+            min-height: 28px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pl-entry {
+            margin-top: 4px;
+            padding: 0;
+            font-size: 1.01em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* P&L badge couleurs et taille */
+        .pl-badge-positive {
+            background: #e6f9f0;
+            color: #4ade80;
+            border-radius: 8px;
+            padding: 2px 10px 2px 8px;
+            font-weight: 700;
+            font-size: 0.89em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 1px 4px rgba(34, 197, 94, 0.07);
+        }
+
+        .pl-badge-negative {
+            background: #fff7e6;
+            color: #fbbf24;
+            border-radius: 8px;
+            padding: 2px 10px 2px 8px;
+            font-weight: 700;
+            font-size: 0.89em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 1px 4px rgba(251, 191, 36, 0.07);
+        }
+
+        .pl-badge-neutral {
+            background: #e7eaf6;
+            color: #64748b;
+            border-radius: 8px;
+            padding: 2px 10px 2px 8px;
+            font-weight: 700;
+            font-size: 0.89em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 1px 4px rgba(100, 116, 139, 0.07);
+        }
+
+        @media (max-width: 900px) {
+            .pl-day-modern {
+                min-width: 90px;
+                max-width: 120px;
+                font-size: 0.98em;
+            }
+        }
+
+        @media (max-width: 700px) {
+            #pl-days-container {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .pl-day-modern {
+                min-width: 80px;
+                max-width: 100px;
+                font-size: 0.93em;
+                padding: 24px 0 14px 0;
+            }
+        }
+
+        .chart-placeholder {
+            background: #f7fafc;
+            border: 2px dashed #cbd5e0;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            color: #718096;
+            margin: 20px 0;
+        }
+
+        .chart-placeholder .charts-gallery {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 48px;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 18px;
+        }
+
+        .chart-placeholder .chart-block {
+            width: 220px;
+            min-width: 220px;
+            max-width: 220px;
+        }
+
+        @media (max-width: 1100px) {
+            .chart-placeholder .charts-gallery {
+                flex-wrap: wrap;
+                gap: 32px 24px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .chart-placeholder .charts-gallery {
+                flex-direction: column;
+                align-items: center;
+                gap: 24px;
+            }
+        }
+
+        .risk-calculator {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .risk-result {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 10px;
+            font-weight: normal;
+            color: #222;
+            font-size: 0.98rem;
+        }
+
+        .risk-result .risk-amount {
+            color: #4a90e2;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .risk-result .stop-loss {
+            color: #e67e22;
+            font-size: 0.93rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .risk-result .position-size {
+            color: #27ae60;
+            font-size: 0.93rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .levels-display {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .levels-display div {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .chart-url-input.invisible-input {
+            opacity: 0;
+            pointer-events: none;
+            height: 0;
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .chart-url-input {
+            transition: opacity 0.25s;
+        }
+
+        .pl-day-box {
+            flex: 1 1 0;
+            background: #e0e6ed;
+            border-radius: 12px;
+            padding: 96px 0 56px 0;
+            margin: 0 2px;
+            text-align: center;
+            font-size: 1.12rem;
+            font-weight: 600;
+            color: #4a5568;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.07);
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .pl-day-box.current {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            font-weight: 700;
+            border: 2px solid #764ba2;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.13);
+            z-index: 1;
+        }
+
+        .pl-form-inline {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.10);
+            padding: 18px 18px 12px 18px;
+            margin: 0 2px 10px 2px;
+            position: absolute;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            min-width: 220px;
+            max-width: 260px;
+        }
+
+        .pl-form-inline input,
+        .pl-form-inline textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px 12px;
+            border-radius: 7px;
+            border: 1.2px solid #e0e6ed;
+            font-size: 1rem;
+            background: #f8fafc;
+        }
+
+        .pl-form-inline label {
+            font-weight: 600;
+            color: #764ba2;
+            font-size: 0.98em;
+        }
+
+        .pl-form-inline .pl-btn-validate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 8px 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 2px;
+        }
+
+        .pl-entry {
+            margin-top: 8px;
+            padding: 8px 0 0 0;
+            font-size: 1.04em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pl-entry-positive {
+            color: #4ade80;
+            /* vert clair */
+            font-weight: bold;
+        }
+
+        .pl-entry-negative {
+            color: #f472b6;
+            /* rose doux */
+            font-weight: bold;
+        }
+
+        .pl-entry-neutral {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .pl-entry .pl-amount {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pl-entry .pl-icon {
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Modale P&L */
+        #plModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(44, 44, 64, 0.18);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #plModalContent {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.18);
+            padding: 32px 28px 22px 28px;
+            min-width: 320px;
+            max-width: 90vw;
+            position: relative;
+        }
+
+        #plModalClose {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            color: #764ba2;
+            cursor: pointer;
+        }
+
+        #plModalDay {
+            font-size: 1.13em;
+            font-weight: 700;
+            color: #764ba2;
+            margin-bottom: 10px;
+        }
+
+        #plModalHour {
+            font-size: 1.05em;
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+
+        #plModalComment {
+            font-size: 1em;
+            color: #64748b;
+        }
+
+        #pl-days-container {
+            display: flex;
+            flex-direction: row;
+            gap: 22px;
+            justify-content: center;
+            align-items: stretch;
+            min-width: 420px;
+            max-width: 700px;
+            margin-left: 0;
+        }
+
+        @media (max-width: 1100px) {
+            #pl-days-container {
+                min-width: 320px;
+                max-width: 100vw;
+                gap: 14px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            #pl-days-container {
+                flex-wrap: wrap;
+                gap: 10px;
+                min-width: 0;
+                max-width: 100vw;
+            }
+
+            .pl-day-modern {
+                min-width: 90px;
+                max-width: 120px;
+                font-size: 0.98em;
+            }
+        }
+
+        @media (max-width: 700px) {
+            #pl-days-container {
+                flex-wrap: wrap;
+                gap: 8px;
+                min-width: 0;
+                max-width: 100vw;
+            }
+
+            .pl-day-modern {
+                min-width: 80px;
+                max-width: 100px;
+                font-size: 0.93em;
+                padding: 24px 0 14px 0;
+            }
+        }
+
+        footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 -2px 16px rgba(102, 126, 234, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1002;
+            min-height: 48px;
+            font-size: 1.04em;
+            font-weight: 500;
+            color: #764ba2;
+            letter-spacing: 0.01em;
+        }
+
+        footer div {
+            flex: 1;
+            text-align: center;
+        }
+
+        footer .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 7px 18px;
+            font-weight: 600;
+            font-size: 1em;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.10);
+            transition: background 0.2s;
+        }
+
+        footer .btn:hover {
+            background: linear-gradient(135deg, #4a56a2 0%, #5b4ba2 100%);
+        }
+
+        .instrument-select-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 200px;
+            min-width: 140px;
+            max-width: 260px;
+        }
+
+        .instrument-select-wrapper select {
+            width: 100%;
+            border-radius: 8px;
+            border: 1.5px solid #e0e6ed;
+            padding: 10px 36px 10px 12px;
+            /* padding-right augmenté pour la flèche */
+            font-size: 1em;
+            background: #f8fafc;
+            color: #232946;
+            font-weight: 500;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            cursor: pointer;
+        }
+
+        .instrument-select-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 14px;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-top: 7px solid #764ba2;
+            transform: translateY(-50%);
+        }
+    </style>
+    <!-- Ajout du CDN Chart.js dans le <head> -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📈 Weekly Bias Trading Strategy</h1>
+            <p>Systematic approach to market analysis based on OHLC reference candles</p>
+        </div>
+
+        <div class="dashboard" style="display: flex; flex-direction: column; gap: 0; margin-bottom: 30px;">
+            <div class="card" style="width: 100%; max-width: 100%;">
+                <div class="tabs" style="display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 18px;">
+                    <button class="tab-btn active" data-tab="inputs" type="button">Inputs</button>
+                    <button class="tab-btn" data-tab="weekly-inputs" type="button">Weekly Inputs</button>
+                    <button class="tab-btn" data-tab="bias" type="button">Weekly Bias</button>
+                    <button class="tab-btn" data-tab="risk" type="button">Risk / Position Size</button>
+                    <button class="tab-btn" data-tab="pl" type="button">P&amp;L</button>
+                    <button class="tab-btn" data-tab="journal" type="button">Journal</button>
+                </div>
+                <div class="tab-content active" id="tab-inputs">
+                    <div class="input-group"
+                        style="display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:18px;">
+                        <div style="flex-shrink:0;">
+                            <label for="instrument">Trading Instrument:</label>
+                            <span class="instrument-select-wrapper">
+                                <select id="instrument"
+                                    style="width:200px; min-width:140px; max-width:260px; border-radius:8px; border:1.5px solid #e0e6ed; padding:10px 12px; font-size:1em; background:#f8fafc; color:#232946; font-weight:500;">
+                                    <option value="NQ">NQ Futures</option>
+                                    <option value="US100">US100</option>
+                                    <option value="GBPUSD">GBP/USD</option>
+                                    <option value="EURUSD">EUR/USD</option>
+                                </select>
+                            </span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
+                            <label for="weekStart" style="font-weight:600; color:#764ba2; margin-bottom:0;">Week
+                                of</label>
+                            <input type="date" id="weekStart"
+                                style="width:140px; min-width:100px; max-width:180px; border-radius:8px; border:1.5px solid #e0e6ed; padding:10px 12px; font-size:1em; background:#f8fafc; color:#232946; font-weight:500;" />
+                            <span style="font-weight:600; color:#764ba2;">to</span>
+                            <input type="date" id="weekEnd"
+                                style="width:140px; min-width:100px; max-width:180px; border-radius:8px; border:1.5px solid #e0e6ed; padding:10px 12px; font-size:1em; background:#f8fafc; color:#232946; font-weight:500;" />
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 18px;">
+                        <div style="font-weight:600; color:#764ba2; margin-bottom:6px;">Monday OHLC</div>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                            <div class="input-group">
+                                <label for="mondayOpen" style="font-weight:400;">Monday Open:</label>
+                                <input type="number" id="mondayOpen" step="0.01" placeholder="Enter Monday open price">
+                            </div>
+                            <div class="input-group">
+                                <label for="mondayHigh" style="font-weight:400;">Monday High:</label>
+                                <input type="number" id="mondayHigh" step="0.01" placeholder="Enter Monday high price">
+                            </div>
+                            <div class="input-group">
+                                <label for="mondayLow" style="font-weight:400;">Monday Low:</label>
+                                <input type="number" id="mondayLow" step="0.01" placeholder="Enter Monday low price">
+                            </div>
+                            <div class="input-group">
+                                <label for="mondayClose" style="font-weight:400;">Monday Close:</label>
+                                <input type="number" id="mondayClose" step="0.01"
+                                    placeholder="Enter Monday close price">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 18px;">
+                        <div style="font-weight:600; color:#764ba2; margin-bottom:6px;">Tuesday OHLC</div>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                            <div class="input-group">
+                                <label for="tuesdayOpen" style="font-weight:400;">Tuesday Open:</label>
+                                <input type="number" id="tuesdayOpen" step="0.01"
+                                    placeholder="Enter Tuesday open price">
+                            </div>
+                            <div class="input-group">
+                                <label for="tuesdayHigh" style="font-weight:400;">Tuesday High:</label>
+                                <input type="number" id="tuesdayHigh" step="0.01"
+                                    placeholder="Enter Tuesday high price">
+                            </div>
+                            <div class="input-group">
+                                <label for="tuesdayLow" style="font-weight:400;">Tuesday Low:</label>
+                                <input type="number" id="tuesdayLow" step="0.01" placeholder="Enter Tuesday low price">
+                            </div>
+                            <div class="input-group">
+                                <label for="tuesdayClose" style="font-weight:400;">Tuesday Close:</label>
+                                <input type="number" id="tuesdayClose" step="0.01"
+                                    placeholder="Enter Tuesday close price">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn" style="margin-top:18px;" onclick="analyzeBias()">🔍 Analyze Weekly Bias</button>
+                </div>
+                <div class="tab-content" id="tab-weekly-inputs">
+                    <div style="margin-bottom: 18px;">
+                        <div style="font-weight:600; color:#764ba2; margin-bottom:6px;">Wednesday OHLC</div>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                            <div class="input-group">
+                                <label for="wednesdayOpen" style="font-weight:400;">Wednesday Open:</label>
+                                <input type="number" id="wednesdayOpen" step="0.01"
+                                    placeholder="Enter Wednesday open price">
+                            </div>
+                            <div class="input-group">
+                                <label for="wednesdayHigh" style="font-weight:400;">Wednesday High:</label>
+                                <input type="number" id="wednesdayHigh" step="0.01"
+                                    placeholder="Enter Wednesday high price">
+                            </div>
+                            <div class="input-group">
+                                <label for="wednesdayLow" style="font-weight:400;">Wednesday Low:</label>
+                                <input type="number" id="wednesdayLow" step="0.01"
+                                    placeholder="Enter Wednesday low price">
+                            </div>
+                            <div class="input-group">
+                                <label for="wednesdayClose" style="font-weight:400;">Wednesday Close:</label>
+                                <input type="number" id="wednesdayClose" step="0.01"
+                                    placeholder="Enter Wednesday close price">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 18px;">
+                        <div style="font-weight:600; color:#764ba2; margin-bottom:6px;">Thursday OHLC</div>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                            <div class="input-group">
+                                <label for="thursdayOpen" style="font-weight:400;">Thursday Open:</label>
+                                <input type="number" id="thursdayOpen" step="0.01"
+                                    placeholder="Enter Thursday open price">
+                            </div>
+                            <div class="input-group">
+                                <label for="thursdayHigh" style="font-weight:400;">Thursday High:</label>
+                                <input type="number" id="thursdayHigh" step="0.01"
+                                    placeholder="Enter Thursday high price">
+                            </div>
+                            <div class="input-group">
+                                <label for="thursdayLow" style="font-weight:400;">Thursday Low:</label>
+                                <input type="number" id="thursdayLow" step="0.01"
+                                    placeholder="Enter Thursday low price">
+                            </div>
+                            <div class="input-group">
+                                <label for="thursdayClose" style="font-weight:400;">Thursday Close:</label>
+                                <input type="number" id="thursdayClose" step="0.01"
+                                    placeholder="Enter Thursday close price">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 18px;">
+                        <div style="font-weight:600; color:#764ba2; margin-bottom:6px;">Friday OHLC</div>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                            <div class="input-group">
+                                <label for="fridayOpen" style="font-weight:400;">Friday Open:</label>
+                                <input type="number" id="fridayOpen" step="0.01" placeholder="Enter Friday open price">
+                            </div>
+                            <div class="input-group">
+                                <label for="fridayHigh" style="font-weight:400;">Friday High:</label>
+                                <input type="number" id="fridayHigh" step="0.01" placeholder="Enter Friday high price">
+                            </div>
+                            <div class="input-group">
+                                <label for="fridayLow" style="font-weight:400;">Friday Low:</label>
+                                <input type="number" id="fridayLow" step="0.01" placeholder="Enter Friday low price">
+                            </div>
+                            <div class="input-group">
+                                <label for="fridayClose" style="font-weight:400;">Friday Close:</label>
+                                <input type="number" id="fridayClose" step="0.01"
+                                    placeholder="Enter Friday close price">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 24px; display:flex; flex-direction:column; align-items:center;">
+                        <span style="font-size:0.98em; color:#4a5568; margin-bottom:6px;">Wednesday, Thursday & Friday
+                            Candles:</span>
+                        <div style="display:flex; flex-direction:row; gap:18px; align-items:end;">
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <svg id="wednesdayCandleSVG" width="36" height="90" viewBox="0 0 36 90"
+                                    style="display:block;"></svg>
+                                <span style="font-size:0.92em; color:#888; margin-top:2px;">Wed</span>
+                            </div>
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <svg id="thursdayCandleSVG" width="36" height="90" viewBox="0 0 36 90"
+                                    style="display:block;"></svg>
+                                <span style="font-size:0.92em; color:#888; margin-top:2px;">Thu</span>
+                            </div>
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <svg id="fridayCandleSVG" width="36" height="90" viewBox="0 0 36 90"
+                                    style="display:block;"></svg>
+                                <span style="font-size:0.92em; color:#888; margin-top:2px;">Fri</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn" style="margin-top:24px;" onclick="drawWeeklyCandles()">🖼️ Afficher les
+                        bougies</button>
+                </div>
+                <div class="tab-content" id="tab-bias">
+                    <div id="biasResult" class="bias-result" style="display: none;">
+                        <div id="biasType"></div>
+                        <div id="biasDescription" style="font-size: 0.9rem; margin-top: 10px; opacity: 0.9;"></div>
+                    </div>
+                    <div class="levels-display" id="keyLevels" style="display: none;">
+                        <h4 style="margin-bottom: 10px;">Key Levels:</h4>
+                        <div><span>PDH (Previous Day High):</span><span id="pdhLevel">-</span></div>
+                        <div><span>PDL (Previous Day Low):</span><span id="pdlLevel">-</span></div>
+                        <div><span>EQ (Equilibrium):</span><span id="eqLevel">-</span></div>
+                        <div style="margin-top:18px; display:flex; flex-direction:column; align-items:center;">
+                            <span style="font-size:0.98em; color:#4a5568; margin-bottom:6px;">Monday & Tuesday
+                                Candles:</span>
+                            <div style="display:flex; flex-direction:row; gap:18px; align-items:end;">
+                                <div style="display:flex; flex-direction:column; align-items:center;">
+                                    <svg id="mondayCandleSVG" width="36" height="90" viewBox="0 0 36 90"
+                                        style="display:block;"></svg>
+                                    <span style="font-size:0.92em; color:#888; margin-top:2px;">Mon</span>
+                                </div>
+                                <div style="display:flex; flex-direction:column; align-items:center;">
+                                    <svg id="tuesdayCandleSVG" width="36" height="90" viewBox="0 0 36 90"
+                                        style="display:block;"></svg>
+                                    <span style="font-size:0.92em; color:#888; margin-top:2px;">Tue</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content" id="tab-risk">
+                    <div
+                        style="display:flex; flex-direction:row; gap:32px; justify-content:center; align-items:stretch; min-height:220px;">
+                        <!-- Colonne gauche : Risk Calculator -->
+                        <div
+                            style="flex:1; min-width:260px; max-width:420px; background:rgba(255,255,255,0.10); padding:18px 18px 18px 18px; border-radius:12px; display:flex; flex-direction:column; justify-content:flex-start;">
+                            <div class="risk-calculator">
+                                <h4 style="color: #2d3748; margin-bottom: 10px; font-weight:700; letter-spacing:0.5px;">
+                                    Risk
+                                    Calculator</h4>
+                                <div class="input-group">
+                                    <label for="accountBalance" style="color: #2d3748;">Account Balance ($):</label>
+                                    <input type="number" id="accountBalance" placeholder="Enter account balance">
+                                </div>
+                                <div class="input-group">
+                                    <label for="riskPercent" style="color: #2d3748;">Risk % (default 1%):</label>
+                                    <input type="number" id="riskPercent" value="1" step="0.1" max="5">
+                                </div>
+                                <div class="input-group" id="stopLossGroup">
+                                    <label for="stopLossTicks" style="color: #2d3748;">Stop Loss (ticks):</label>
+                                    <input type="number" id="stopLossTicks" min="1" step="1" placeholder="e.g. 20" />
+                                </div>
+                                <div class="input-group" id="stopLossPipsGroup" style="display:none;">
+                                    <label for="stopLossPips" style="color: #2d3748;">Stop Loss (pips):</label>
+                                    <input type="number" id="stopLossPips" min="0.1" step="0.1" placeholder="e.g. 20" />
+                                </div>
+                                <div style="display:flex; justify-content:center; margin-top:18px;">
+                                    <button class="btn"
+                                        style="padding:8px 48px; height:40px; min-width:200px; max-width:260px; font-size:1.08em; border-radius:7px; display:inline-flex; align-items:center; gap:10px;"
+                                        onclick="calculateRisk()">💰 Calculate</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Colonne droite : Résultat -->
+                        <div
+                            style="flex:1; min-width:260px; max-width:420px; background:linear-gradient(135deg,#f8fafc 80%,#eef2fb 100%); border-radius:12px; box-shadow:0 2px 12px rgba(102,126,234,0.06); display:flex; flex-direction:column; justify-content:flex-start; align-items:center; padding:28px 18px 18px 18px;">
+                            <h4
+                                style="color:#764ba2; font-size:1.13em; font-weight:700; margin-bottom:18px; letter-spacing:0.5px;">
+                                Résultat</h4>
+                            <div id="riskResult" class="risk-result" style="color: #222; width:100%; max-width:320px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content" id="tab-pl">
+                    <div
+                        style="display: flex; flex-wrap: nowrap; justify-content: center; align-items: flex-start; gap: 44px; padding: 18px 0 18px 0; min-height:260px;">
+                        <!-- Cadre de gauche (jours) -->
+                        <div id="pl-days-container"
+                            style="flex:2; display: flex; flex-direction: row; gap: 22px; justify-content: center; align-items: stretch; min-width:420px; max-width:700px; margin-left:0;">
+                        </div>
+                        <!-- Cadre de droite (graphique) -->
+                        <div
+                            style="flex:1.2; min-width:320px; max-width:420px; width:100%; background:linear-gradient(135deg,#f8fafc 70%,#e0e6ed 100%); border-radius:18px; box-shadow:0 4px 24px rgba(102,126,234,0.13); padding:38px 24px 28px 36px; display:flex; flex-direction:column; align-items:center; margin-left:24px;">
+                            <h4
+                                style="margin-bottom: 18px; color: #764ba2; text-align:center; font-size:1.22em; letter-spacing:0.5px; font-weight:700;">
+                                P&amp;L Hebdo</h4>
+                            <canvas id="plChart" width="340" height="220"
+                                style="background:rgba(255,255,255,0.98); border-radius:14px; box-shadow:0 2px 8px rgba(102,126,234,0.10);"></canvas>
+                            <hr style="width:60%; border:0; border-top:1.5px solid #e0e8f0; margin:18px 0 8px 0;">
+                            <p style="opacity:0.7; font-size:1.01em; margin:0;">Évolution du P&amp;L de la semaine</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content" id="tab-journal">
+                    <div style="padding: 18px 0; text-align: center; color: #4a5568;">
+                        <h4 style="margin-bottom: 18px; color: #764ba2;">Journal de Trading</h4>
+                        <p style="opacity:0.8;">Consignez vos observations, émotions, et leçons de la semaine.</p>
+                        <textarea
+                            style="width:90%; max-width:600px; min-height:120px; border-radius:10px; border:1.5px solid #e0e6ed; padding:14px; font-size:1.08rem; margin-top:18px; background:#f8fafc; color:#232946;"
+                            placeholder="Saisissez vos notes ici..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trading Plan -->
+        <div class="trading-plan">
+            <h3>📋 Weekly Trading Plan</h3>
+
+            <div class="plan-grid">
+                <div class="plan-section">
+                    <h4><span class="status-indicator status-inactive"></span>Monday - Observation Day</h4>
+                    <ul>
+                        <li>No trading positions</li>
+                        <li>Establish reference candle</li>
+                        <li>Mark key levels (PDH/PDL)</li>
+                        <li>Prepare for Tuesday analysis</li>
+                    </ul>
+                </div>
+
+                <div class="plan-section">
+                    <h4><span class="status-indicator status-warning"></span>Tuesday - Reference Day</h4>
+                    <ul>
+                        <li>Analyze candle interaction with Monday</li>
+                        <li>Determine preliminary bias</li>
+                        <li>Watch for liquidity sweeps</li>
+                        <li>Avoid entering trades</li>
+                    </ul>
+                </div>
+
+                <div class="plan-section">
+                    <h4><span class="status-indicator status-active"></span>Wednesday - Trading Day</h4>
+                    <ul>
+                        <li>Confirm weekly bias</li>
+                        <li>Look for high-probability setups</li>
+                        <li>Enter trades with proper risk management</li>
+                        <li>Monitor key level interactions</li>
+                    </ul>
+                </div>
+
+                <div class="plan-section">
+                    <h4><span class="status-indicator status-active"></span>Thursday-Friday - Management</h4>
+                    <ul>
+                        <li>Manage existing positions</li>
+                        <li>Trail stops if profitable</li>
+                        <li>Prepare for next week analysis</li>
+                        <li>Review weekly performance</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="chart-placeholder">
+                <h4 style="margin-bottom: 18px;">📸 Chart Screenshots Gallery</h4>
+                <div class="charts-gallery">
+                    <div class="chart-block">
+                        <h5>Weekly</h5>
+                        <input type="url" id="weeklyChartUrl" class="chart-url-input" placeholder="Paste image URL here"
+                            style="width: 100%; padding: 5px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.95rem;">
+                        <div id="weeklyChartPreview"
+                            style="min-height: 120px; width: 100%; display: flex; justify-content: center;"></div>
+                    </div>
+                    <div class="chart-block">
+                        <h5>Daily #1</h5>
+                        <input type="url" id="daily1ChartUrl" class="chart-url-input" placeholder="Paste image URL here"
+                            style="width: 100%; padding: 5px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.95rem;">
+                        <div id="daily1ChartPreview"
+                            style="min-height: 120px; width: 100%; display: flex; justify-content: center;"></div>
+                    </div>
+                    <div class="chart-block">
+                        <h5>Daily #2</h5>
+                        <input type="url" id="daily2ChartUrl" class="chart-url-input" placeholder="Paste image URL here"
+                            style="width: 100%; padding: 5px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.95rem;">
+                        <div id="daily2ChartPreview"
+                            style="min-height: 120px; width: 100%; display: flex; justify-content: center;"></div>
+                    </div>
+                    <div class="chart-block">
+                        <h5>Daily #3</h5>
+                        <input type="url" id="daily3ChartUrl" class="chart-url-input" placeholder="Paste image URL here"
+                            style="width: 100%; padding: 5px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.95rem;">
+                        <div id="daily3ChartPreview"
+                            style="min-height: 120px; width: 100%; display: flex; justify-content: center;"></div>
+                    </div>
+                </div>
+            </div>
+            <script>
+                function setupChartUrlPreview(inputId, previewId) {
+                    const input = document.getElementById(inputId);
+                    const preview = document.getElementById(previewId);
+                    input.addEventListener('input', function (event) {
+                        const url = event.target.value.trim();
+                        if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                            preview.innerHTML = `<a href='${url}' target='_blank'><img src='${url}' alt='Chart Preview' style='width:100%; max-width:100%; max-height:120px; border:1px solid #ccc; border-radius:6px; cursor:pointer; transition:box-shadow 0.2s;'></a>`;
+                            input.classList.add('invisible-input');
+                        } else {
+                            preview.innerHTML = '';
+                            input.classList.remove('invisible-input');
+                        }
+                    });
+                    // Affiche l'input si on clique sur l'aperçu
+                    preview.addEventListener('click', function () {
+                        input.classList.remove('invisible-input');
+                        input.focus();
+                    });
+                    // Affiche l'input si on clique sur le bloc (hors image)
+                    input.parentElement.addEventListener('click', function (e) {
+                        if (e.target === input.parentElement) {
+                            input.classList.remove('invisible-input');
+                            input.focus();
+                        }
+                    });
+                }
+                setupChartUrlPreview('weeklyChartUrl', 'weeklyChartPreview');
+                setupChartUrlPreview('daily1ChartUrl', 'daily1ChartPreview');
+                setupChartUrlPreview('daily2ChartUrl', 'daily2ChartPreview');
+                setupChartUrlPreview('daily3ChartUrl', 'daily3ChartPreview');
+            </script>
+        </div>
+    </div>
+
+    <!-- Modale P&L -->
+    <div id="plModal"
+        style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(44,44,64,0.18); z-index:1000; align-items:center; justify-content:center;">
+        <div id="plModalContent"
+            style="background:#fff; border-radius:14px; box-shadow:0 8px 32px rgba(102,126,234,0.18); padding:32px 28px 22px 28px; min-width:320px; max-width:90vw; position:relative;">
+            <button id="plModalClose"
+                style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:1.5em; color:#764ba2; cursor:pointer;">&times;</button>
+            <div id="plModalDay" style="font-size:1.13em; font-weight:700; color:#764ba2; margin-bottom:10px;"></div>
+            <div id="plModalHour" style="font-size:1.05em; color:#4a5568; margin-bottom:8px;"></div>
+            <div id="plModalComment" style="font-size:1em; color:#64748b;"></div>
+        </div>
+    </div>
+
+    <footer id="main-footer"
+        style="position:fixed; left:0; right:0; bottom:0; width:100vw; background:rgba(255,255,255,0.85); box-shadow:0 -2px 16px rgba(102,126,234,0.08); display:flex; align-items:center; justify-content:center; z-index:1002; min-height:48px; font-size:1.04em; font-weight:500; color:#764ba2; letter-spacing:0.01em;">
+        <div style="flex:1; text-align:center;">
+            &copy; 2025 Powered by 3dr!ves
+        </div>
+        <div style="position:absolute; right:32px; display:flex; gap:16px;">
+            <button id="download-json"
+                style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; border:none; border-radius:7px; padding:7px 18px; font-weight:600; font-size:1em; cursor:pointer; box-shadow:0 2px 8px rgba(102,126,234,0.10); transition:background 0.2s;">Download
+                JSON</button>
+            <button id="upload-json"
+                style="background:linear-gradient(135deg,#feca57 0%,#ff9ff3 100%); color:#764ba2; border:none; border-radius:7px; padding:7px 18px; font-weight:600; font-size:1em; cursor:pointer; box-shadow:0 2px 8px rgba(102,126,234,0.10); transition:background 0.2s;">Upload
+                JSON</button>
+            <input type="file" id="upload-json-input" accept="application/json" style="display:none;" />
+        </div>
+    </footer>
+    <script>
+        // Download JSON logic
+        document.getElementById('download-json').onclick = function () {
+            const data = {
+                tradingData,
+                plData,
+                journal: document.querySelector('#tab-journal textarea')?.value || ''
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'trading_strat_data.json';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+        };
+        // Upload JSON logic
+        document.getElementById('upload-json').onclick = function () {
+            document.getElementById('upload-json-input').click();
+        };
+        document.getElementById('upload-json-input').onchange = function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (data.tradingData) tradingData = data.tradingData;
+                    if (data.plData) plData = data.plData;
+                    if (typeof data.journal === 'string') {
+                        const ta = document.querySelector('#tab-journal textarea');
+                        if (ta) ta.value = data.journal;
+                    }
+                    // Rafraîchir l'affichage
+                    if (typeof renderPLBoxes === 'function') renderPLBoxes();
+                    if (typeof updatePLChart === 'function') updatePLChart();
+                } catch (err) {
+                    alert('Invalid JSON file.');
+                }
+            };
+            reader.readAsText(file);
+        };
+    </script>
+    <script>
+        // Trading data storage
+        let tradingData = {
+            monday: {},
+            tuesday: {},
+            bias: null,
+            keyLevels: {}
+        };
+
+        // Market instruments configuration
+        const instruments = {
+            'NQ': { name: 'NASDAQ 100 Futures', pip: 0.25 },
+            'US100': { name: 'US100 Index', pip: 0.1 },
+            'GBPUSD': { name: 'GBP/USD', pip: 0.0001 },
+            'EURUSD': { name: 'EUR/USD', pip: 0.0001 }
+        };
+
+        function analyzeBias() {
+            // Collect Monday data
+            tradingData.monday = {
+                open: parseFloat(document.getElementById('mondayOpen').value) || 0,
+                high: parseFloat(document.getElementById('mondayHigh').value) || 0,
+                low: parseFloat(document.getElementById('mondayLow').value) || 0,
+                close: parseFloat(document.getElementById('mondayClose').value) || 0
+            };
+
+            // Collect Tuesday data
+            tradingData.tuesday = {
+                open: parseFloat(document.getElementById('tuesdayOpen').value) || 0,
+                high: parseFloat(document.getElementById('tuesdayHigh').value) || 0,
+                low: parseFloat(document.getElementById('tuesdayLow').value) || 0,
+                close: parseFloat(document.getElementById('tuesdayClose').value) || 0
+            };
+
+            // Validate data
+            if (!validateInputData()) {
+                alert('Please enter valid OHLC data for both Monday and Tuesday');
+                return;
+            }
+
+            // Calculate key levels
+            calculateKeyLevels();
+
+            // Determine bias
+            const bias = determineWeeklyBias();
+            displayBiasResult(bias);
+            // Switch to Weekly Bias tab after analysis
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const biasBtn = Array.from(tabBtns).find(btn => btn.dataset.tab === 'bias');
+            if (biasBtn) {
+                biasBtn.click();
+            }
+        }
+
+        function validateInputData() {
+            const monday = tradingData.monday;
+            const tuesday = tradingData.tuesday;
+
+            // Check if all values are present and valid
+            return (monday.open > 0 && monday.high > 0 && monday.low > 0 && monday.close > 0 &&
+                tuesday.open > 0 && tuesday.high > 0 && tuesday.low > 0 && tuesday.close > 0 &&
+                monday.high >= Math.max(monday.open, monday.close) &&
+                monday.low <= Math.min(monday.open, monday.close) &&
+                tuesday.high >= Math.max(tuesday.open, tuesday.close) &&
+                tuesday.low <= Math.min(tuesday.open, tuesday.close));
+        }
+
+        function calculateKeyLevels() {
+            const monday = tradingData.monday;
+
+            tradingData.keyLevels = {
+                PDH: monday.high,
+                PDL: monday.low,
+                EQ: (monday.high + monday.low) / 2,
+                range: monday.high - monday.low
+            };
+        }
+
+        function determineWeeklyBias() {
+            const monday = tradingData.monday;
+            const tuesday = tradingData.tuesday;
+
+            // Determine if Tuesday swept Monday's levels
+            const sweptHigh = tuesday.high > monday.high;
+            const sweptLow = tuesday.low < monday.low;
+
+            // Check if Tuesday closed within Monday's range
+            const closesInRange = tuesday.close >= monday.low && tuesday.close <= monday.high;
+
+            let bias, description;
+
+            if ((sweptHigh || sweptLow) && closesInRange) {
+                // Reversal pattern
+                bias = 'REVERSAL';
+                description = 'Tuesday swept Monday\'s levels but closed within range. Expect price to reverse direction and seek opposite liquidity.';
+            } else if ((tuesday.close > monday.high && tuesday.high > monday.high) ||
+                (tuesday.close < monday.low && tuesday.low < monday.low)) {
+                // Continuation pattern
+                bias = 'CONTINUATION';
+                description = 'Tuesday broke and closed beyond Monday\'s range. Expect continuation in the same direction.';
+            } else {
+                // Consolidation pattern
+                bias = 'CONSOLIDATION';
+                description = 'Tuesday remained within Monday\'s range. Market is consolidating - wait for breakout direction.';
+            }
+
+            tradingData.bias = bias;
+            return { type: bias, description: description };
+        }
+
+        function displayBiasResult(biasInfo) {
+            const resultDiv = document.getElementById('biasResult');
+            const typeDiv = document.getElementById('biasType');
+            const descDiv = document.getElementById('biasDescription');
+            const levelsDiv = document.getElementById('keyLevels');
+
+            // Show result
+            resultDiv.style.display = 'block';
+            levelsDiv.style.display = 'block';
+
+            // Set bias type and styling
+            typeDiv.textContent = `Weekly Bias: ${biasInfo.type}`;
+            descDiv.textContent = biasInfo.description;
+
+            // Apply appropriate styling
+            resultDiv.className = `bias-result bias-${biasInfo.type.toLowerCase()}`;
+
+            // Display key levels
+            document.getElementById('pdhLevel').textContent = tradingData.keyLevels.PDH.toFixed(4);
+            document.getElementById('pdlLevel').textContent = tradingData.keyLevels.PDL.toFixed(4);
+            document.getElementById('eqLevel').textContent = tradingData.keyLevels.EQ.toFixed(4);
+            // Draw Monday and Tuesday candles
+            drawCandle(
+                'mondayCandleSVG',
+                tradingData.monday.open,
+                tradingData.monday.high,
+                tradingData.monday.low,
+                tradingData.monday.close
+            );
+            drawCandle(
+                'tuesdayCandleSVG',
+                tradingData.tuesday.open,
+                tradingData.tuesday.high,
+                tradingData.tuesday.low,
+                tradingData.tuesday.close
+            );
+        }
+
+        // Ajout d'un event listener pour changer l'input selon l'instrument
+        function updateStopLossInput() {
+            const instrument = document.getElementById('instrument').value;
+            if (instrument === 'NQ' || instrument === 'US100') {
+                document.getElementById('stopLossGroup').style.display = '';
+                document.getElementById('stopLossPipsGroup').style.display = 'none';
+            } else {
+                document.getElementById('stopLossGroup').style.display = 'none';
+                document.getElementById('stopLossPipsGroup').style.display = '';
+            }
+        }
+        document.getElementById('instrument').addEventListener('change', updateStopLossInput);
+        // Initialisation au chargement
+        updateStopLossInput();
+
+        function calculateRisk() {
+            const balance = parseFloat(document.getElementById('accountBalance').value);
+            const riskPercent = parseFloat(document.getElementById('riskPercent').value) || 1;
+            const instrument = document.getElementById('instrument').value;
+            let stopLoss, positionSize, riskAmount;
+            let tickValue = 1, pipValue = 10, contractSize = 100000, pip = 0.0001;
+
+            if (!balance || balance <= 0) {
+                alert('Please enter a valid account balance');
+                return;
+            }
+            if (riskPercent > 5) {
+                alert('Risk percentage should not exceed 5% for proper risk management');
+                return;
+            }
+
+            riskAmount = balance * (riskPercent / 100);
+
+            if (instrument === 'NQ' || instrument === 'US100') {
+                stopLoss = parseFloat(document.getElementById('stopLossTicks').value);
+                if (!stopLoss || stopLoss <= 0) {
+                    alert('Please enter a valid stop loss in ticks');
+                    return;
+                }
+                tickValue = (instrument === 'NQ') ? 5 : 0.2; // NQ: $5/tick, US100: $0.2/tick (exemple)
+                positionSize = riskAmount / (stopLoss * tickValue);
+            } else {
+                stopLoss = parseFloat(document.getElementById('stopLossPips').value);
+                if (!stopLoss || stopLoss <= 0) {
+                    alert('Please enter a valid stop loss in pips');
+                    return;
+                }
+                // Valeur du pip : 10$ pour un lot standard (100 000) sur EURUSD/GBPUSD
+                pipValue = 10;
+                contractSize = 100000;
+                pip = 0.0001;
+                // Pour d'autres paires, adapter pipValue si besoin
+                positionSize = riskAmount / (stopLoss * pipValue);
+            }
+
+            const resultDiv = document.getElementById('riskResult');
+            resultDiv.innerHTML = `
+                <div class="risk-result risk-amount" style="background:#f0f6ff; border-radius:8px; padding:10px 14px; margin-bottom:7px; font-size:0.97rem; font-weight:400; color:#2563eb; align-items:center; gap:8px; display:flex; box-shadow:0 2px 8px rgba(37,99,235,0.07);">
+                    <span style="font-size:1.25em;">💵</span>
+                    <span style="font-weight:500;">Risk Amount</span>
+                    <span style="margin-left:auto; font-weight:700; font-size:1.08em; letter-spacing:0.5px;">$${riskAmount.toFixed(2)}</span>
+                </div>
+                <div class="risk-result stop-loss" style="background:#fff7ed; border-radius:8px; padding:10px 14px; margin-bottom:7px; font-size:0.97rem; font-weight:400; color:#d97706; align-items:center; gap:8px; display:flex; box-shadow:0 2px 8px rgba(217,119,6,0.07);">
+                    <span style="font-size:1.25em;">⛔</span>
+                    <span class="stop-loss-label" style="font-weight:500;">Stop Loss</span>
+                    <span style="margin-left:auto; font-weight:700; font-size:1.08em; letter-spacing:0.5px;">${stopLoss} <span style='font-size:0.95em;font-weight:400;color:#b45309;'>${(instrument === 'NQ' || instrument === 'US100') ? 'ticks' : 'pips'}</span></span>
+                </div>
+                <div class="risk-result position-size" style="background:#f0fdf4; border-radius:8px; padding:10px 14px; font-size:0.97rem; font-weight:400; color:#059669; align-items:center; gap:8px; display:flex; box-shadow:0 2px 8px rgba(16,185,129,0.07);">
+                    <span style="font-size:1.25em;">📏</span>
+                    <span class="position-size-label" style="font-weight:500;">Position Size</span>
+                    <span style="margin-left:auto; font-weight:700; font-size:1.08em; letter-spacing:0.5px;">${positionSize.toFixed(2)} <span style='font-size:0.95em;font-weight:400;color:#047857;'>${(instrument === 'NQ' || instrument === 'US100') ? 'contrats' : 'lots'}</span></span>
+                </div>
+            `;
+        }
+
+        function drawCandle(svgId, open, high, low, close) {
+            const svg = document.getElementById(svgId);
+            if (!svg) return;
+            svg.innerHTML = '';
+            const min = Math.min(open, close, high, low);
+            const max = Math.max(open, close, high, low);
+            const range = max - min || 1;
+
+            function y(val) {
+                return 10 + 70 * (1 - (val - min) / range);
+            }
+            const openY = y(open);
+            const closeY = y(close);
+            const highY = y(high);
+            const lowY = y(low);
+            const isBull = close > open;
+            const candleColor = isBull ? '#22c55e' : '#232323';
+            svg.innerHTML += `<rect x="17" y="${highY}" width="2" height="${lowY - highY}" fill="#888" rx="1"/>`;
+            const bodyY = Math.min(openY, closeY);
+            const bodyH = Math.abs(closeY - openY) || 6;
+            svg.innerHTML += `<rect x="10" y="${bodyY}" width="16" height="${bodyH}" fill="${candleColor}" rx="3"/>`;
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Weekly Bias Trading App Loaded');
+
+            // Add some sample data for demonstration
+            document.getElementById('mondayOpen').value = '15750.25';
+            document.getElementById('mondayHigh').value = '15820.75';
+
+            document.getElementById('mondayLow').value = '15720.50';
+            document.getElementById('mondayClose').value = '15800.25';
+
+            document.getElementById('tuesdayOpen').value = '15805.50';
+            document.getElementById('tuesdayHigh').value = '15835.25';
+            document.getElementById('tuesdayLow').value = '15710.75';
+            document.getElementById('tuesdayClose').value = '15780.50';
+
+            document.getElementById('accountBalance').value = '50000';
+        });
+
+        // Weekly Inputs Candles Drawing
+        function drawWeeklyCandles() {
+            drawCandle('wednesdayCandleSVG',
+                parseFloat(document.getElementById('wednesdayOpen').value) || 0,
+                parseFloat(document.getElementById('wednesdayHigh').value) || 0,
+                parseFloat(document.getElementById('wednesdayLow').value) || 0,
+                parseFloat(document.getElementById('wednesdayClose').value) || 0
+            );
+            drawCandle('thursdayCandleSVG',
+                parseFloat(document.getElementById('thursdayOpen').value) || 0,
+                parseFloat(document.getElementById('thursdayHigh').value) || 0,
+                parseFloat(document.getElementById('thursdayLow').value) || 0,
+                parseFloat(document.getElementById('thursdayClose').value) || 0
+            );
+            drawCandle('fridayCandleSVG',
+                parseFloat(document.getElementById('fridayOpen').value) || 0,
+                parseFloat(document.getElementById('fridayHigh').value) || 0,
+                parseFloat(document.getElementById('fridayLow').value) || 0,
+                parseFloat(document.getElementById('fridayClose').value) || 0
+            );
+        }
+
+        // Onglets JS
+        (function () {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = {
+                'inputs': document.getElementById('tab-inputs'),
+                'weekly-inputs': document.getElementById('tab-weekly-inputs'),
+                'bias': document.getElementById('tab-bias'),
+                'risk': document.getElementById('tab-risk'),
+                'pl': document.getElementById('tab-pl'),
+                'journal': document.getElementById('tab-journal')
+            };
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    Object.keys(tabContents).forEach(key => {
+                        tabContents[key].classList.remove('active');
+                    });
+                    tabContents[btn.dataset.tab].classList.add('active');
+                });
+            });
+        })();
+
+        // P&L Inline Formulaire et Affichage
+        const plDays = [
+            { key: 'monday', label: 'Lundi' },
+            { key: 'tuesday', label: 'Mardi' },
+            { key: 'wednesday', label: 'Mercredi' },
+            { key: 'thursday', label: 'Jeudi' },
+            { key: 'friday', label: 'Vendredi' }
+        ];
+        let plData = {
+            monday: null,
+            tuesday: null,
+            wednesday: null,
+            thursday: null,
+            friday: null
+
+
+
+        };
+        let plFormOpen = null;
+
+        function renderPLBoxes() {
+            const container = document.getElementById('pl-days-container');
+            container.innerHTML = '';
+            const todayIdx = (new Date().getDay() + 6) % 7; // Lundi=0, ...
+            plDays.forEach((day, idx) => {
+                // Card jour
+                const box = document.createElement('div');
+                box.className = 'pl-day-box' + (idx === todayIdx ? ' current' : '');
+                box.id = `pl-box-${day.key}`;
+                box.style.cursor = 'pointer';
+                // Affiche le nom du jour en haut
+                const dayLabel = document.createElement('div');
+                dayLabel.textContent = day.label;
+                dayLabel.style.fontSize = '1.13em';
+                dayLabel.style.fontWeight = '700';
+                dayLabel.style.letterSpacing = '0.01em';
+                dayLabel.style.color = idx === todayIdx ? '#fff' : '#764ba2';
+                dayLabel.style.marginBottom = '18px';
+                box.appendChild(dayLabel);
+                // Affiche le P&L stylé juste en dessous
+                if (plData[day.key]) {
+                    box.innerHTML += plPLOnlyHTML(day.key, plData[day.key]);
+                }
+                // Clic sur la box = formulaire si pas de P&L, sinon modale
+                box.onclick = () => {
+                    if (plData[day.key]) {
+                        showPLModal(day.key);
+                    } else {
+                        showPLForm(day.key, box);
+                    }
+                };
+                container.appendChild(box);
+                // Affichage du formulaire inline si demandé
+                if (plFormOpen === day.key) {
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = plFormHTML(day.key);
+                    wrapper.style.position = 'absolute';
+                    wrapper.style.left = `${idx * 20}%`;
+                    wrapper.style.top = '110px';
+                    wrapper.style.zIndex = 10;
+                    container.appendChild(wrapper);
+                }
+            });
+        }
+
+        function plPLOnlyHTML(dayKey, val) {
+            const pl = parseFloat(val.pl);
+            const isPos = pl > 0;
+            const isNeg = pl < 0;
+            let color = '#059669', entryClass = 'pl-entry-positive';
+            if (isNeg) { color = '#dc2626'; entryClass = 'pl-entry-negative'; }
+            if (pl === 0) { color = '#64748b'; entryClass = 'pl-entry-neutral'; }
+            return `
+                <div class="pl-entry ${entryClass}" style="background:rgba(255,255,255,0.0); border-radius:10px; box-shadow:none; padding:10px 0 6px 0; min-width:120px; margin:0 auto;">
+                    <div class="pl-amount" style="font-size:1.13em; font-weight:700; color:${color}; display:flex; align-items:center; gap:8px; justify-content:center;">
+                        <span>${pl > 0 ? '+' : ''}${pl.toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showPLModal(dayKey) {
+            const val = plData[dayKey];
+            if (!val) return;
+            document.getElementById('plModalDay').textContent = plDays.find(d => d.key === dayKey).label;
+            document.getElementById('plModalHour').textContent = '';
+            document.getElementById('plModalComment').textContent = val.comment ? `Commentaire : ${val.comment}` : '';
+            document.getElementById('plModal').style.display = 'flex';
+        }
+        document.getElementById('plModalClose').onclick = function () {
+            document.getElementById('plModal').style.display = 'none';
+        };
+        document.getElementById('plModal').onclick = function (e) {
+            if (e.target === this) this.style.display = 'none';
+        };
+
+        function showPLForm(dayKey, box) {
+            plFormOpen = dayKey;
+            renderPLBoxes();
+            setTimeout(() => {
+                const input = document.getElementById(`pl-input-hour-${dayKey}`);
+                if (input) input.focus();
+            }, 100);
+        }
+
+        function plFormHTML(dayKey) {
+            const val = plData[dayKey] || { hour: '', pl: '', comment: '' };
+            return `
+                <form onsubmit="submitPLForm(event, '${dayKey}')" style="background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(102,126,234,0.10); padding:14px 18px; margin-top:8px; display:flex; flex-direction:column; gap:8px; min-width:180px;">
+                    <div style='display:flex; gap:8px; align-items:center;'>
+                        <label style='min-width:40px; color:#764ba2;'>P&amp;L</label>
+                        <input id="pl-input-${dayKey}" type="number" step="0.01" value="${val.pl}" style="flex:1; border-radius:6px; border:1px solid #e0e6ed; padding:4px 8px; font-size:1em;" required />
+                    </div>
+                    <div style='display:flex; gap:8px; justify-content:flex-end; margin-top:6px;'>
+                        <button type="submit" class="btn" style="width:auto; padding:6px 18px; font-size:0.98em;">Valider</button>
+                        <button type="button" class="btn" style="width:auto; background:#e0e6ed; color:#764ba2; font-weight:600; padding:6px 18px; font-size:0.98em;" onclick="cancelPLForm(event)">Annuler</button>
+                    </div>
+                </form>
+            `;
+        }
+
+        function submitPLForm(e, dayKey) {
+            e.preventDefault();
+            // const hour = document.getElementById(`pl-input-hour-${dayKey}`).value; // supprimé
+            const pl = document.getElementById(`pl-input-${dayKey}`).value;
+            plData[dayKey] = { pl };
+            plFormOpen = null;
+            renderPLBoxes();
+            updatePLChart();
+        }
+        function cancelPLForm(e) {
+            e.preventDefault();
+            plFormOpen = null;
+            renderPLBoxes();
+        }
+        // Chart.js P&L
+        let plChart = null;
+        function updatePLChart() {
+            const ctx = document.getElementById('plChart').getContext('2d');
+            const data = plDays.map(d => plData[d.key] ? parseFloat(plData[d.key].pl) : 0);
+            let cumulative = 0;
+            const cumulativeData = data.map(v => (cumulative += v));
+            if (!plChart) {
+                plChart = new window.Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: plDays.map(d => d.label),
+                        datasets: [{
+                            label: 'P&L cumulatif',
+                            data: cumulativeData,
+                            borderColor: '#764ba2',
+                            backgroundColor: 'rgba(118,75,162,0.08)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#764ba2',
+                        }]
+                    },
+                    options: {
+                        responsive: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            } else {
+                plChart.data.datasets[0].data = cumulativeData;
+                plChart.update();
+            }
+        }
+        // Initial rendering
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () {
+                renderPLBoxes();
+                updatePLChart();
+            });
+        } else {
+            renderPLBoxes();
+            updatePLChart();
+        }
+        // P&L JOURNAL LOGIC
+        // Icônes SVG modernes pour P&L
+        function getPLIcon(value) {
+            if (value > 0) {
+                // Flèche haut verte
+                return `<svg class="pl-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 16V4M10 4L5 9M10 4l5 5" stroke="#4ade80" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+            } else if (value < 0) {
+                // Flèche bas rose
+                return `<svg class="pl-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 4v12M10 16l5-5M10 16l-5-5" stroke="#f472b6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+            } else {
+                // Tiret gris
+                return `<svg class="pl-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="5" y1="10" x2="15" y2="10" stroke="#64748b" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+            }
+        }
+
+        // Remplacer l'affichage du P&L dans la génération des boîtes jours (exemple)
+        //
+        // Dans la fonction qui affiche le P&L sous chaque jour :
+        //
+        //   <div class="pl-entry ${entryClass}">
+        //     <span class="pl-amount">${plIcon}${Math.abs(plValue)}</span>
+        //   </div>
+        //
+        // Exemple d'utilisation :
+        //   getPLIcon(plValue) + Math.abs(plValue)
+        //
+        //
+        // Si la logique d'affichage du P&L est dans une fonction JS, remplacer l'icône et la classe selon la valeur :
+        //
+        //   let plClass = plValue > 0 ? 'pl-entry-positive' : (plValue < 0 ? 'pl-entry-negative' : 'pl-entry-neutral');
+        //   let plIcon = getPLIcon(plValue);
+        //   ...
+        //   `<div class="pl-entry ${plClass}"><span class="pl-amount">${plIcon}${Math.abs(plValue)}</span></div>`
+        (function updatePLDisplay() {
+            // Replace icon logic in P&L rendering (inline and modal)
+            function getPLIcon(amount) {
+                if (amount > 0) {
+                    // Flèche haut verte
+                    return `<span class="pl-icon" style="display:inline-flex;align-items:center;">
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 16V4M10 4L4 10M10 4l6 6" stroke="#4ade80" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>`;
+                } else if (amount < 0) {
+                    // Flèche bas rose
+                    return `<span class="pl-icon" style="display:inline-flex;align-items:center;">
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 4v12M10 16l6-6M10 16l-6-6" stroke="#f472b6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>`;
+                } else {
+                    // Tiret bleu-gris
+                    return `<span class="pl-icon" style="display:inline-flex;align-items:center;">
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="9" width="10" height="2.2" rx="1.1" fill="#64748b"/></svg>
+                    </span>`;
+                }
+            }
+            // Utiliser getPLIcon dans l'affichage des P&L (inline et modale)
+        })();
+    </script>
+</body>
+
+</html>
