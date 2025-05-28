@@ -153,7 +153,6 @@
 
         .input-group select {
             width: 16.666%;
-            /* 1/6 de la largeur du parent */
             min-width: 120px;
             max-width: 260px;
             padding: 14px 18px;
@@ -761,13 +760,11 @@
 
         .pl-entry-positive {
             color: #4ade80;
-            /* vert clair */
             font-weight: bold;
         }
 
         .pl-entry-negative {
             color: #f472b6;
-            /* rose doux */
             font-weight: bold;
         }
 
@@ -945,7 +942,6 @@
             border-radius: 8px;
             border: 1.5px solid #e0e6ed;
             padding: 10px 36px 10px 12px;
-            /* padding-right augmenté pour la flèche */
             font-size: 1em;
             background: #f8fafc;
             color: #232946;
@@ -1192,7 +1188,6 @@
                 <div class="tab-content" id="tab-risk">
                     <div
                         style="display:flex; flex-direction:row; gap:32px; justify-content:center; align-items:stretch; min-height:220px;">
-                        <!-- Colonne gauche : Risk Calculator -->
                         <div
                             style="flex:1; min-width:260px; max-width:420px; background:rgba(255,255,255,0.10); padding:18px 18px 18px 18px; border-radius:12px; display:flex; flex-direction:column; justify-content:flex-start;">
                             <div class="risk-calculator">
@@ -1222,7 +1217,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Colonne droite : Résultat -->
                         <div
                             style="flex:1; min-width:260px; max-width:420px; background:linear-gradient(135deg,#f8fafc 80%,#eef2fb 100%); border-radius:12px; box-shadow:0 2px 12px rgba(102,126,234,0.06); display:flex; flex-direction:column; justify-content:flex-start; align-items:center; padding:28px 18px 18px 18px;">
                             <h4
@@ -1236,11 +1230,9 @@
                 <div class="tab-content" id="tab-pl">
                     <div
                         style="display: flex; flex-wrap: nowrap; justify-content: center; align-items: flex-start; gap: 44px; padding: 18px 0 18px 0; min-height:260px;">
-                        <!-- Cadre de gauche (jours) -->
                         <div id="pl-days-container"
                             style="flex:2; display: flex; flex-direction: row; gap: 22px; justify-content: center; align-items: stretch; min-width:420px; max-width:700px; margin-left:0;">
                         </div>
-                        <!-- Cadre de droite (graphique) -->
                         <div
                             style="flex:1.2; min-width:320px; max-width:420px; width:100%; background:linear-gradient(135deg,#f8fafc 70%,#e0e6ed 100%); border-radius:18px; box-shadow:0 4px 24px rgba(102,126,234,0.13); padding:38px 24px 28px 36px; display:flex; flex-direction:column; align-items:center; margin-left:24px;">
                             <h4
@@ -1259,7 +1251,7 @@
                         <p style="opacity:0.8;">Consignez vos observations, émotions, et leçons de la semaine.</p>
                         <textarea
                             style="width:90%; max-width:600px; min-height:120px; border-radius:10px; border:1.5px solid #e0e6ed; padding:14px; font-size:1.08rem; margin-top:18px; background:#f8fafc; color:#232946;"
-                            placeholder="Saisissez vos notes ici..."></textarea>
+                            placeholder="Saisissez vos notes ici..." id="journalTextarea"></textarea>
                     </div>
                 </div>
             </div>
@@ -1358,12 +1350,10 @@
                             input.classList.remove('invisible-input');
                         }
                     });
-                    // Affiche l'input si on clique sur l'aperçu
                     preview.addEventListener('click', function () {
                         input.classList.remove('invisible-input');
                         input.focus();
                     });
-                    // Affiche l'input si on clique sur le bloc (hors image)
                     input.parentElement.addEventListener('click', function (e) {
                         if (e.target === input.parentElement) {
                             input.classList.remove('invisible-input');
@@ -1393,55 +1383,6 @@
     </div>
 
     <script>
-        // Download JSON logic
-        document.getElementById('download-json').onclick = function () {
-            const data = {
-                tradingData,
-                plData,
-                journal: document.querySelector('#tab-journal textarea')?.value || ''
-            };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'trading_strat_data.json';
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
-        };
-        // Upload JSON logic
-        document.getElementById('upload-json').onclick = function () {
-            document.getElementById('upload-json-input').click();
-        };
-        document.getElementById('upload-json-input').onchange = function (e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function (evt) {
-                try {
-                    const data = JSON.parse(evt.target.result);
-                    if (data.tradingData) tradingData = data.tradingData;
-                    if (data.plData) plData = data.plData;
-                    if (typeof data.journal === 'string') {
-                        const ta = document.querySelector('#tab-journal textarea');
-                        if (ta) ta.value = data.journal;
-                    }
-                    // Rafraîchir l'affichage
-                    if (typeof renderPLBoxes === 'function') renderPLBoxes();
-                    if (typeof updatePLChart === 'function') updatePLChart();
-                } catch (err) {
-                    alert('Invalid JSON file.');
-                }
-            };
-            reader.readAsText(file);
-        };
-        // Ajout d'un faux handler pour le bouton Save (à personnaliser selon besoin)
-        document.getElementById('save-btn').onclick = function () {
-            // Ici, on peut sauvegarder dans le localStorage ou afficher une notification
-            alert('Data saved locally! (Démo)');
-        };
-    </script>
-    <script>
         // Trading data storage
         let tradingData = {
             monday: {},
@@ -1457,6 +1398,131 @@
             'GBPUSD': { name: 'GBP/USD', pip: 0.0001 },
             'EURUSD': { name: 'EUR/USD', pip: 0.0001 }
         };
+
+        // P&L Data
+        const plDays = [
+            { key: 'monday', label: 'Lundi' },
+            { key: 'tuesday', label: 'Mardi' },
+            { key: 'wednesday', label: 'Mercredi' },
+            { key: 'thursday', label: 'Jeudi' },
+            { key: 'friday', label: 'Vendredi' }
+        ];
+        let plData = {
+            monday: null,
+            tuesday: null,
+            wednesday: null,
+            thursday: null,
+            friday: null
+        };
+        let plFormOpen = null;
+        let plChart = null;
+
+        // Save data to localStorage
+        function saveToLocalStorage() {
+            const data = {
+                tradingData: tradingData,
+                plData: plData,
+                journal: document.querySelector('#journalTextarea')?.value || '',
+                weeklyInputs: {
+                    wednesday: getInputValues('wednesday'),
+                    thursday: getInputValues('thursday'),
+                    friday: getInputValues('friday')
+                }
+            };
+            
+            localStorage.setItem('trading_strat_data', JSON.stringify(data));
+        }
+
+        // Helper function to get input values
+        function getInputValues(day) {
+            return {
+                open: document.getElementById(`${day}Open`).value,
+                high: document.getElementById(`${day}High`).value,
+                low: document.getElementById(`${day}Low`).value,
+                close: document.getElementById(`${day}Close`).value
+            };
+        }
+
+        // Load data from localStorage
+        function loadFromLocalStorage() {
+            const savedData = localStorage.getItem('trading_strat_data');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    
+                    // Load trading data
+                    if (data.tradingData) {
+                        tradingData = data.tradingData;
+                        // Update UI fields
+                        document.getElementById('mondayOpen').value = tradingData.monday.open || '';
+                        document.getElementById('mondayHigh').value = tradingData.monday.high || '';
+                        document.getElementById('mondayLow').value = tradingData.monday.low || '';
+                        document.getElementById('mondayClose').value = tradingData.monday.close || '';
+                        
+                        document.getElementById('tuesdayOpen').value = tradingData.tuesday.open || '';
+                        document.getElementById('tuesdayHigh').value = tradingData.tuesday.high || '';
+                        document.getElementById('tuesdayLow').value = tradingData.tuesday.low || '';
+                        document.getElementById('tuesdayClose').value = tradingData.tuesday.close || '';
+                        
+                        // Redraw candles if needed
+                        if (tradingData.monday.open && tradingData.monday.high) {
+                            drawCandle('mondayCandleSVG',
+                                tradingData.monday.open,
+                                tradingData.monday.high,
+                                tradingData.monday.low,
+                                tradingData.monday.close);
+                        }
+                        if (tradingData.tuesday.open && tradingData.tuesday.high) {
+                            drawCandle('tuesdayCandleSVG',
+                                tradingData.tuesday.open,
+                                tradingData.tuesday.high,
+                                tradingData.tuesday.low,
+                                tradingData.tuesday.close);
+                        }
+                    }
+                    
+                    // Load P&L data
+                    if (data.plData) {
+                        plData = data.plData;
+                        renderPLBoxes();
+                        updatePLChart();
+                    }
+                    
+                    // Load journal
+                    if (data.journal) {
+                        document.querySelector('#journalTextarea').value = data.journal;
+                    }
+                    
+                    // Load weekly inputs
+                    if (data.weeklyInputs) {
+                        ['wednesday', 'thursday', 'friday'].forEach(day => {
+                            if (data.weeklyInputs[day]) {
+                                document.getElementById(`${day}Open`).value = data.weeklyInputs[day].open || '';
+                                document.getElementById(`${day}High`).value = data.weeklyInputs[day].high || '';
+                                document.getElementById(`${day}Low`).value = data.weeklyInputs[day].low || '';
+                                document.getElementById(`${day}Close`).value = data.weeklyInputs[day].close || '';
+                            }
+                        });
+                        
+                        // Redraw weekly candles if needed
+                        drawWeeklyCandles();
+                    }
+                } catch (err) {
+                    console.error('Error loading data:', err);
+                }
+            }
+        }
+
+        // Set up auto-save on input changes
+        function setupAutoSave() {
+            // Listen to all input changes
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                el.addEventListener('change', saveToLocalStorage);
+            });
+            
+            // Save before page unload
+            window.addEventListener('beforeunload', saveToLocalStorage);
+        }
 
         function analyzeBias() {
             // Collect Monday data
@@ -1487,6 +1553,10 @@
             // Determine bias
             const bias = determineWeeklyBias();
             displayBiasResult(bias);
+            
+            // Save updated data
+            saveToLocalStorage();
+            
             // Switch to Weekly Bias tab after analysis
             const tabBtns = document.querySelectorAll('.tab-btn');
             const biasBtn = Array.from(tabBtns).find(btn => btn.dataset.tab === 'bias');
@@ -1589,7 +1659,6 @@
             );
         }
 
-        // Ajout d'un event listener pour changer l'input selon l'instrument
         function updateStopLossInput() {
             const instrument = document.getElementById('instrument').value;
             if (instrument === 'NQ' || instrument === 'US100') {
@@ -1600,9 +1669,6 @@
                 document.getElementById('stopLossPipsGroup').style.display = '';
             }
         }
-        document.getElementById('instrument').addEventListener('change', updateStopLossInput);
-        // Initialisation au chargement
-        updateStopLossInput();
 
         function calculateRisk() {
             const balance = parseFloat(document.getElementById('accountBalance').value);
@@ -1628,7 +1694,7 @@
                     alert('Please enter a valid stop loss in ticks');
                     return;
                 }
-                tickValue = (instrument === 'NQ') ? 5 : 0.2; // NQ: $5/tick, US100: $0.2/tick (exemple)
+                tickValue = (instrument === 'NQ') ? 5 : 0.2; // NQ: $5/tick, US100: $0.2/tick
                 positionSize = riskAmount / (stopLoss * tickValue);
             } else {
                 stopLoss = parseFloat(document.getElementById('stopLossPips').value);
@@ -1636,11 +1702,9 @@
                     alert('Please enter a valid stop loss in pips');
                     return;
                 }
-                // Valeur du pip : 10$ pour un lot standard (100 000) sur EURUSD/GBPUSD
                 pipValue = 10;
                 contractSize = 100000;
                 pip = 0.0001;
-                // Pour d'autres paires, adapter pipValue si besoin
                 positionSize = riskAmount / (stopLoss * pipValue);
             }
 
@@ -1662,11 +1726,14 @@
                     <span style="margin-left:auto; font-weight:700; font-size:1.08em; letter-spacing:0.5px;">${positionSize.toFixed(2)} <span style='font-size:0.95em;font-weight:400;color:#047857;'>${(instrument === 'NQ' || instrument === 'US100') ? 'contrats' : 'lots'}</span></span>
                 </div>
             `;
+            
+            // Save data after calculation
+            saveToLocalStorage();
         }
 
         function drawCandle(svgId, open, high, low, close) {
             const svg = document.getElementById(svgId);
-            if (!svg) return;
+            if (!svg || isNaN(open) || isNaN(high) || isNaN(low) || isNaN(close)) return;
             svg.innerHTML = '';
             const min = Math.min(open, close, high, low);
             const max = Math.max(open, close, high, low);
@@ -1688,26 +1755,6 @@
             svg.innerHTML += `<rect x="10" y="${bodyY}" width="16" height="${bodyH}" fill="${candleColor}" rx="3"/>`;
         }
 
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', function () {
-            console.log('Weekly Bias Trading App Loaded');
-
-            // Add some sample data for demonstration
-            document.getElementById('mondayOpen').value = '15750.25';
-            document.getElementById('mondayHigh').value = '15820.75';
-
-            document.getElementById('mondayLow').value = '15720.50';
-            document.getElementById('mondayClose').value = '15800.25';
-
-            document.getElementById('tuesdayOpen').value = '15805.50';
-            document.getElementById('tuesdayHigh').value = '15835.25';
-            document.getElementById('tuesdayLow').value = '15710.75';
-            document.getElementById('tuesdayClose').value = '15780.50';
-
-            document.getElementById('accountBalance').value = '50000';
-        });
-
-        // Weekly Inputs Candles Drawing
         function drawWeeklyCandles() {
             drawCandle('wednesdayCandleSVG',
                 parseFloat(document.getElementById('wednesdayOpen').value) || 0,
@@ -1727,9 +1774,12 @@
                 parseFloat(document.getElementById('fridayLow').value) || 0,
                 parseFloat(document.getElementById('fridayClose').value) || 0
             );
+            
+            // Save data after drawing
+            saveToLocalStorage();
         }
 
-        // Onglets JS
+        // Tab switching logic
         (function () {
             const tabBtns = document.querySelectorAll('.tab-btn');
             const tabContents = {
@@ -1748,245 +1798,216 @@
                         tabContents[key].classList.remove('active');
                     });
                     tabContents[btn.dataset.tab].classList.add('active');
+                    
+                    // Save when switching tabs
+                    saveToLocalStorage();
                 });
             });
         })();
 
-        // P&L Inline Formulaire et Affichage
-        const plDays = [
-            { key: 'monday', label: 'Lundi' },
-            { key: 'tuesday', label: 'Mardi' },
-            { key: 'wednesday', label: 'Mercredi' },
-            { key: 'thursday', label: 'Jeudi' },
-            { key: 'friday', label: 'Vendredi' }
-        ];
-        let plData = {
-            monday: null,
-            tuesday: null,
-            wednesday: null,
-            thursday: null,
-            friday: null
-
-
-
-        };
-        let plFormOpen = null;
-
+        // P&L functions - CORRIGÉ
         function renderPLBoxes() {
             const container = document.getElementById('pl-days-container');
             container.innerHTML = '';
             const todayIdx = (new Date().getDay() + 6) % 7; // Lundi=0, ...
+            
             plDays.forEach((day, idx) => {
-                // Card jour
-                const box = document.createElement('div');
-                box.className = 'pl-day-box' + (idx === todayIdx ? ' current' : '');
-                box.id = `pl-box-${day.key}`;
-                box.style.cursor = 'pointer';
-                // Affiche le nom du jour en haut
-                const dayLabel = document.createElement('div');
-                dayLabel.textContent = day.label;
-                dayLabel.style.fontSize = '1.13em';
-                dayLabel.style.fontWeight = '700';
-                dayLabel.style.letterSpacing = '0.01em';
-                dayLabel.style.color = idx === todayIdx ? '#fff' : '#764ba2';
-                dayLabel.style.marginBottom = '18px';
-                box.appendChild(dayLabel);
-                // Affiche le P&L stylé juste en dessous
+                // Créer le conteneur du jour
+                const dayContainer = document.createElement('div');
+                dayContainer.className = 'pl-day-modern' + (idx === todayIdx ? ' current' : '');
+                dayContainer.id = `pl-box-${day.key}`;
+                dayContainer.style.position = 'relative';
+                
+                // Titre du jour
+                const dayTitle = document.createElement('div');
+                dayTitle.className = 'pl-day-title';
+                dayTitle.textContent = day.label;
+                dayTitle.style.color = idx === todayIdx ? '#fff' : '#764ba2';
+                dayContainer.appendChild(dayTitle);
+                
+                // Badge P&L
+                const badgeContainer = document.createElement('div');
+                badgeContainer.className = 'pl-day-badge';
+                
                 if (plData[day.key]) {
-                    box.innerHTML += plPLOnlyHTML(day.key, plData[day.key]);
+                    const plValue = parseFloat(plData[day.key].pl);
+                    let badgeClass = 'pl-badge-neutral';
+                    
+                    if (plValue > 0) {
+                        badgeClass = 'pl-badge-positive';
+                    } else if (plValue < 0) {
+                        badgeClass = 'pl-badge-negative';
+                    }
+                    
+                    badgeContainer.innerHTML = `
+                        <div class="${badgeClass}">
+                            ${plValue > 0 ? '+' : ''}${plValue.toFixed(2)}
+                        </div>
+                    `;
+                } else {
+                    badgeContainer.innerHTML = '<div class="pl-badge-neutral">-</div>';
                 }
-                // Clic sur la box = formulaire si pas de P&L, sinon modale
-                box.onclick = () => {
-                    if (plData[day.key]) {
-                        showPLModal(day.key);
-                    } else {
-                        showPLForm(day.key, box);
+                dayContainer.appendChild(badgeContainer);
+                
+                // Section d'entrée (texte "Ajouter" ou "Modifier")
+                const entryContainer = document.createElement('div');
+                entryContainer.className = 'pl-entry';
+                entryContainer.textContent = plData[day.key] ? 'Modifier' : 'Ajouter';
+                dayContainer.appendChild(entryContainer);
+                
+                // Gestionnaire de clic
+                dayContainer.onclick = function(e) {
+                    if (e.target !== dayContainer && !e.target.closest('.pl-form-inline')) {
+                        if (plData[day.key]) {
+                            showPLModal(day.key);
+                        } else {
+                            showPLForm(day.key, dayContainer);
+                        }
                     }
                 };
-                container.appendChild(box);
-                // Affichage du formulaire inline si demandé
-                if (plFormOpen === day.key) {
-                    const wrapper = document.createElement('div');
-                    wrapper.innerHTML = plFormHTML(day.key);
-                    wrapper.style.position = 'absolute';
-                    wrapper.style.left = `${idx * 20}%`;
-                    wrapper.style.top = '110px';
-                    wrapper.style.zIndex = 10;
-                    container.appendChild(wrapper);
-                }
+                
+                container.appendChild(dayContainer);
             });
-        }
-
-        function plPLOnlyHTML(dayKey, val) {
-            const pl = parseFloat(val.pl);
-            const isPos = pl > 0;
-            const isNeg = pl < 0;
-            let color = '#059669', entryClass = 'pl-entry-positive';
-            if (isNeg) { color = '#dc2626'; entryClass = 'pl-entry-negative'; }
-            if (pl === 0) { color = '#64748b'; entryClass = 'pl-entry-neutral'; }
-            return `
-                <div class="pl-entry ${entryClass}" style="background:rgba(255,255,255,0.0); border-radius:10px; box-shadow:none; padding:10px 0 6px 0; min-width:120px; margin:0 auto;">
-                    <div class="pl-amount" style="font-size:1.13em; font-weight:700; color:${color}; display:flex; align-items:center; gap:8px; justify-content:center;">
-                        <span>${pl > 0 ? '+' : ''}${pl.toFixed(2)}</span>
-                    </div>
-                </div>
-            `;
         }
 
         function showPLModal(dayKey) {
             const val = plData[dayKey];
             if (!val) return;
-            document.getElementById('plModalDay').textContent = plDays.find(d => d.key === dayKey).label;
-            document.getElementById('plModalHour').textContent = '';
+            
+            const dayLabel = plDays.find(d => d.key === dayKey).label;
+            
+            document.getElementById('plModalDay').textContent = dayLabel;
             document.getElementById('plModalComment').textContent = val.comment ? `Commentaire : ${val.comment}` : '';
             document.getElementById('plModal').style.display = 'flex';
         }
-        document.getElementById('plModalClose').onclick = function () {
-            document.getElementById('plModal').style.display = 'none';
-        };
-        document.getElementById('plModal').onclick = function (e) {
-            if (e.target === this) this.style.display = 'none';
-        };
 
-        function showPLForm(dayKey, box) {
-            plFormOpen = dayKey;
-            renderPLBoxes();
-            setTimeout(() => {
-                const input = document.getElementById(`pl-input-hour-${dayKey}`);
-                if (input) input.focus();
-            }, 100);
-        }
-
-        function plFormHTML(dayKey) {
-            const val = plData[dayKey] || { hour: '', pl: '', comment: '' };
-            return `
-                <form onsubmit="submitPLForm(event, '${dayKey}')" style="background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(102,126,234,0.10); padding:14px 18px; margin-top:8px; display:flex; flex-direction:column; gap:8px; min-width:180px;">
-                    <div style='display:flex; gap:8px; align-items:center;'>
-                        <label style='min-width:40px; color:#764ba2;'>P&amp;L</label>
-                        <input id="pl-input-${dayKey}" type="number" step="0.01" value="${val.pl}" style="flex:1; border-radius:6px; border:1px solid #e0e6ed; padding:4px 8px; font-size:1em;" required />
-                    </div>
-                    <div style='display:flex; gap:8px; justify-content:flex-end; margin-top:6px;'>
-                        <button type="submit" class="btn" style="width:auto; padding:6px 18px; font-size:0.98em;">Valider</button>
-                        <button type="button" class="btn" style="width:auto; background:#e0e6ed; color:#764ba2; font-weight:600; padding:6px 18px; font-size:0.98em;" onclick="cancelPLForm(event)">Annuler</button>
-                    </div>
-                </form>
+        function showPLForm(dayKey, container) {
+            // Supprimer tout formulaire existant
+            document.querySelectorAll('.pl-form-inline').forEach(form => form.remove());
+            
+            const val = plData[dayKey] || { pl: '', comment: '' };
+            
+            // Créer le formulaire
+            const form = document.createElement('div');
+            form.className = 'pl-form-inline';
+            form.innerHTML = `
+                <label for="pl-input-${dayKey}">P&L:</label>
+                <input type="number" id="pl-input-${dayKey}" value="${val.pl}" step="0.01" placeholder="Entrez le P&L">
+                <button class="pl-btn-validate" onclick="savePL('${dayKey}')">Valider</button>
             `;
+            
+            // Positionner le formulaire
+            container.appendChild(form);
+            
+            // Focus sur l'input
+            setTimeout(() => {
+                document.getElementById(`pl-input-${dayKey}`).focus();
+            }, 10);
         }
 
-        function submitPLForm(e, dayKey) {
-            e.preventDefault();
-            // const hour = document.getElementById(`pl-input-hour-${dayKey}`).value; // supprimé
-            const pl = document.getElementById(`pl-input-${dayKey}`).value;
-            plData[dayKey] = { pl };
-            plFormOpen = null;
-            renderPLBoxes();
-            updatePLChart();
+        function savePL(dayKey) {
+            const input = document.getElementById(`pl-input-${dayKey}`);
+            const plValue = parseFloat(input.value);
+            
+            if (!isNaN(plValue)) {
+                plData[dayKey] = { pl: plValue };
+                
+                // Supprimer le formulaire
+                document.querySelector('.pl-form-inline').remove();
+                
+                // Mettre à jour l'affichage
+                renderPLBoxes();
+                updatePLChart();
+                
+                // Sauvegarder les données
+                saveToLocalStorage();
+            } else {
+                alert('Veuillez entrer une valeur numérique valide');
+            }
         }
-        function cancelPLForm(e) {
-            e.preventDefault();
-            plFormOpen = null;
-            renderPLBoxes();
-        }
-        // Chart.js P&L
-        let plChart = null;
+
         function updatePLChart() {
             const ctx = document.getElementById('plChart').getContext('2d');
             const data = plDays.map(d => plData[d.key] ? parseFloat(plData[d.key].pl) : 0);
             let cumulative = 0;
             const cumulativeData = data.map(v => (cumulative += v));
-            if (!plChart) {
-                plChart = new window.Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: plDays.map(d => d.label),
-                        datasets: [{
-                            label: 'P&L cumulatif',
-                            data: cumulativeData,
-                            borderColor: '#764ba2',
-                            backgroundColor: 'rgba(118,75,162,0.08)',
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 5,
-                            pointBackgroundColor: '#764ba2',
-                        }]
-                    },
-                    options: {
-                        responsive: false,
-                        plugins: { legend: { display: false } },
-                        scales: { y: { beginAtZero: true } }
-                    }
-                });
-            } else {
-                plChart.data.datasets[0].data = cumulativeData;
-                plChart.update();
+            
+            if (plChart) {
+                plChart.destroy();
             }
-        }
-        // Initial rendering
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function () {
-                renderPLBoxes();
-                updatePLChart();
+            
+            plChart = new window.Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: plDays.map(d => d.label),
+                    datasets: [{
+                        label: 'P&L cumulatif',
+                        data: cumulativeData,
+                        borderColor: '#764ba2',
+                        backgroundColor: 'rgba(118,75,162,0.08)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#764ba2',
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
             });
-        } else {
-            renderPLBoxes();
-            updatePLChart();
-        }
-        // P&L JOURNAL LOGIC
-        // Icônes SVG modernes pour P&L
-        function getPLIcon(value) {
-            if (value > 0) {
-                // Flèche haut verte
-                return `<svg class="pl-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 16V4M10 4L5 9M10 4l5 5" stroke="#4ade80" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-            } else if (value < 0) {
-                // Flèche bas rose
-                return `<svg class="pl-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 4v12M10 16l5-5M10 16l-5-5" stroke="#f472b6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-            } else {
-                // Tiret gris
-                return `<svg class="pl-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="5" y1="10" x2="15" y2="10" stroke="#64748b" stroke-width="2.2" stroke-linecap="round"/></svg>`;
-            }
         }
 
-        // Remplacer l'affichage du P&L dans la génération des boîtes jours (exemple)
-        //
-        // Dans la fonction qui affiche le P&L sous chaque jour :
-        //
-        //   <div class="pl-entry ${entryClass}">
-        //     <span class="pl-amount">${plIcon}${Math.abs(plValue)}</span>
-        //   </div>
-        //
-        // Exemple d'utilisation :
-        //   getPLIcon(plValue) + Math.abs(plValue)
-        //
-        //
-        // Si la logique d'affichage du P&L est dans une fonction JS, remplacer l'icône et la classe selon la valeur :
-        //
-        //   let plClass = plValue > 0 ? 'pl-entry-positive' : (plValue < 0 ? 'pl-entry-negative' : 'pl-entry-neutral');
-        //   let plIcon = getPLIcon(plValue);
-        //   ...
-        //   `<div class="pl-entry ${plClass}"><span class="pl-amount">${plIcon}${Math.abs(plValue)}</span></div>`
-        (function updatePLDisplay() {
-            // Replace icon logic in P&L rendering (inline and modal)
-            function getPLIcon(amount) {
-                if (amount > 0) {
-                    // Flèche haut verte
-                    return `<span class="pl-icon" style="display:inline-flex;align-items:center;">
-                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 16V4M10 4L4 10M10 4l6 6" stroke="#4ade80" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </span>`;
-                } else if (amount < 0) {
-                    // Flèche bas rose
-                    return `<span class="pl-icon" style="display:inline-flex;align-items:center;">
-                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 4v12M10 16l6-6M10 16l-6-6" stroke="#f472b6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </span>`;
-                } else {
-                    // Tiret bleu-gris
-                    return `<span class="pl-icon" style="display:inline-flex;align-items:center;">
-                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="9" width="10" height="2.2" rx="1.1" fill="#64748b"/></svg>
-                    </span>`;
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function () {
+            // Set default data for demonstration
+            document.getElementById('mondayOpen').value = '15750.25';
+            document.getElementById('mondayHigh').value = '15820.75';
+            document.getElementById('mondayLow').value = '15720.50';
+            document.getElementById('mondayClose').value = '15800.25';
+            
+            document.getElementById('tuesdayOpen').value = '15805.50';
+            document.getElementById('tuesdayHigh').value = '15835.25';
+            document.getElementById('tuesdayLow').value = '15710.75';
+            document.getElementById('tuesdayClose').value = '15780.50';
+            
+            document.getElementById('accountBalance').value = '50000';
+            
+            // Set up instrument change listener
+            document.getElementById('instrument').addEventListener('change', updateStopLossInput);
+            updateStopLossInput();
+            
+            // Set up auto-save
+            setupAutoSave();
+            
+            // Load saved data
+            loadFromLocalStorage();
+            
+            // Initialize P&L
+            renderPLBoxes();
+            updatePLChart();
+            
+            // Set up modal close button
+            document.getElementById('plModalClose').addEventListener('click', function() {
+                document.getElementById('plModal').style.display = 'none';
+            });
+            
+            // Close modal when clicking outside
+            document.getElementById('plModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.style.display = 'none';
                 }
-            }
-            // Utiliser getPLIcon dans l'affichage des P&L (inline et modale)
-        })();
+            });
+        });
     </script>
+
+    <footer
+        style="position:fixed; left:0; right:0; bottom:0; width:100vw; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow:0 -2px 16px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; z-index:1002; min-height:48px; color:#e0e0e0; font-size:0.9em; font-weight:400; letter-spacing:0.01em;">
+        <div>
+            <span>© 2025 Powered by 3dr!ves</span>
+        </div>
+    </footer>
 </body>
 
 </html>
