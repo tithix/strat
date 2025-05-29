@@ -1417,7 +1417,7 @@
         let plFormOpen = null;
         let plChart = null;
 
-        // Save data to localStorage
+        // Save data to localStorage - MISE À JOUR POUR TOUTES LES DONNÉES
         function saveToLocalStorage() {
             const data = {
                 tradingData: tradingData,
@@ -1427,6 +1427,19 @@
                     wednesday: getInputValues('wednesday'),
                     thursday: getInputValues('thursday'),
                     friday: getInputValues('friday')
+                },
+                
+                // Nouveaux éléments à sauvegarder
+                instrument: document.getElementById('instrument').value,
+                weekStart: document.getElementById('weekStart').value,
+                weekEnd: document.getElementById('weekEnd').value,
+                
+                // Galerie de screenshots
+                chartUrls: {
+                    weekly: document.getElementById('weeklyChartUrl').value,
+                    daily1: document.getElementById('daily1ChartUrl').value,
+                    daily2: document.getElementById('daily2ChartUrl').value,
+                    daily3: document.getElementById('daily3ChartUrl').value
                 }
             };
             
@@ -1443,7 +1456,7 @@
             };
         }
 
-        // Load data from localStorage
+        // Load data from localStorage - MISE À JOUR POUR TOUTES LES DONNÉES
         function loadFromLocalStorage() {
             const savedData = localStorage.getItem('trading_strat_data');
             if (savedData) {
@@ -1507,9 +1520,50 @@
                         // Redraw weekly candles if needed
                         drawWeeklyCandles();
                     }
+                    
+                    // Charger les nouveaux éléments
+                    if (data.instrument) {
+                        document.getElementById('instrument').value = data.instrument;
+                    }
+                    if (data.weekStart) {
+                        document.getElementById('weekStart').value = data.weekStart;
+                    }
+                    if (data.weekEnd) {
+                        document.getElementById('weekEnd').value = data.weekEnd;
+                    }
+                    
+                    // Charger les URLs des graphiques
+                    if (data.chartUrls) {
+                        document.getElementById('weeklyChartUrl').value = data.chartUrls.weekly || '';
+                        document.getElementById('daily1ChartUrl').value = data.chartUrls.daily1 || '';
+                        document.getElementById('daily2ChartUrl').value = data.chartUrls.daily2 || '';
+                        document.getElementById('daily3ChartUrl').value = data.chartUrls.daily3 || '';
+                        
+                        // Mettre à jour les aperçus
+                        setupChartPreview('weeklyChartUrl', 'weeklyChartPreview');
+                        setupChartPreview('daily1ChartUrl', 'daily1ChartPreview');
+                        setupChartPreview('daily2ChartUrl', 'daily2ChartPreview');
+                        setupChartPreview('daily3ChartUrl', 'daily3ChartPreview');
+                    }
+                    
                 } catch (err) {
                     console.error('Error loading data:', err);
                 }
+            }
+        }
+
+        // Fonction pour mettre à jour les aperçus des graphiques
+        function setupChartPreview(inputId, previewId) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            const url = input.value.trim();
+            
+            if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                preview.innerHTML = `<a href='${url}' target='_blank'><img src='${url}' alt='Chart Preview' style='width:100%; max-width:100%; max-height:120px; border:1px solid #ccc; border-radius:6px; cursor:pointer; transition:box-shadow 0.2s;'></a>`;
+                input.classList.add('invisible-input');
+            } else {
+                preview.innerHTML = '';
+                input.classList.remove('invisible-input');
             }
         }
 
@@ -1668,6 +1722,7 @@
                 document.getElementById('stopLossGroup').style.display = 'none';
                 document.getElementById('stopLossPipsGroup').style.display = '';
             }
+            saveToLocalStorage();
         }
 
         function calculateRisk() {
